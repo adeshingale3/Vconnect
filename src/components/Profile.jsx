@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import { auth, db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState({
     name: "",
     nickname: "",
@@ -20,26 +22,79 @@ const Profile = () => {
   });
 
   useEffect(() => {
+    if (!auth.currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    let unsubscribe;
+
     const fetchUserData = async () => {
       try {
         const userDocRef = doc(db, "users", auth.currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
 
+        // Fetch user data from Firestore
+        const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
-          setUserData(docSnap.data());
-          setFormData(docSnap.data());
+          const data = docSnap.data();
+          console.log("Fetched data:", data); // Debugging fetched data
+          setUserData({
+            ...data,
+            auraPoints: Number(data.auraPoints ?? 10),
+            participatedEvents: Number(data.participatedEvents || 0),
+            hostedEvents: Number(data.hostedEvents || 0),
+          });
+          setFormData({
+            name: data.name || "",
+            nickname: data.nickname || "",
+            bio: data.bio || "",
+          });
         } else {
-          console.log("No such document!");
+          // Create default user data if not exists
+          const defaultData = {
+            name: "",
+            nickname: "",
+            bio: "",
+            participatedEvents: 0,
+            hostedEvents: 0,
+            auraPoints: 10,
+          };
+          await setDoc(userDocRef, defaultData);
+          setUserData(defaultData);
+          setFormData({
+            name: "",
+            nickname: "",
+            bio: "",
+          });
         }
+
+        // Realtime updates
+        unsubscribe = onSnapshot(userDocRef, (doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+            setUserData({
+              ...data,
+              auraPoints: Number(data.auraPoints ?? 10),
+              participatedEvents: Number(data.participatedEvents || 0),
+              hostedEvents: Number(data.hostedEvents || 0),
+            });
+          }
+        });
+
       } catch (error) {
-        console.error("Error fetching user data: ", error);
+        console.error("Error fetching user data:", error);
+        alert("Error loading profile data. Please try again.");
       }
     };
 
-    if (auth.currentUser) {
-      fetchUserData();
-    }
-  }, []);
+    fetchUserData();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [navigate]);
 
   const handleEditToggle = () => {
     setEditMode(!editMode);
@@ -51,6 +106,11 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    if (!auth.currentUser) {
+      alert("Please log in to update your profile.");
+      return;
+    }
+
     try {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       await updateDoc(userDocRef, {
@@ -59,11 +119,11 @@ const Profile = () => {
         bio: formData.bio,
       });
 
-      setUserData(formData);
       setEditMode(false);
       console.log("User data updated successfully");
     } catch (error) {
-      console.error("Error updating user data: ", error);
+      console.error("Error updating user data:", error);
+      alert("Failed to update profile. Please try again.");
     }
   };
 
@@ -82,7 +142,7 @@ const Profile = () => {
               className="border rounded p-2"
             />
           ) : (
-            <span>{userData.name}</span>
+            <span>{userData.name || "Not set"}</span>
           )}
         </div>
 
@@ -97,7 +157,7 @@ const Profile = () => {
               className="border rounded p-2"
             />
           ) : (
-            <span>{userData.nickname}</span>
+            <span>{userData.nickname || "Not set"}</span>
           )}
         </div>
 
@@ -111,7 +171,7 @@ const Profile = () => {
               className="border rounded p-2"
             />
           ) : (
-            <span>{userData.bio}</span>
+            <span>{userData.bio || "No bio provided"}</span>
           )}
         </div>
 

@@ -25,6 +25,10 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  const handleLeaderBoardClick = () => {
+    navigate("/leaderboard"); // Redirect to leaderboard
+  };
+
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
@@ -33,9 +37,11 @@ const Navbar = () => {
       })
       .catch((error) => console.log("Error signing out:", error));
   };
-  const handleHostAnEvent = ()=>{
-    navigate("/host-an-event")
-  }
+
+  const handleHostAnEvent = () => {
+    navigate("/host-an-event");
+  };
+
   const handleProfileClick = () => {
     navigate("/profile");
   };
@@ -48,8 +54,7 @@ const Navbar = () => {
       {/* Menu */}
       <div className="menu ml-10 flex gap-6 flex-grow justify-center text-black">
         <a href="#" className="">Event</a>
-        <a href="#" className="">Leaderboard</a>
-        {/* <a href="#" className="">Host an Event</a> */}
+        <button onClick={handleLeaderBoardClick}>Leaderboard</button>
         <button onClick={handleHostAnEvent}>Host an Event</button>
       </div>
 

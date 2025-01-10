@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../firebase'; // Ensure correct Firebase configuration import
+import { useState } from 'react';
+import { addDoc, collection, doc, updateDoc, increment } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
 const HostAnEvent = () => {
@@ -12,7 +12,7 @@ const HostAnEvent = () => {
     description: '',
     maxVolunteers: '',
     hostedBy: '',
-    auraPointsRequired: '', // Ensure it starts as an empty string or a valid number
+    auraPointsRequired: '0',
   });
 
   const navigate = useNavigate();
@@ -30,39 +30,43 @@ const HostAnEvent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure maxVolunteers is a valid number
-    const maxVolunteers = parseInt(eventData.maxVolunteers, 10);
-
-    if (isNaN(maxVolunteers) || maxVolunteers <= 0) {
-      alert('Please enter a valid number for Max Volunteers.');
-      return;
-    }
-
-    // Ensure auraPointsRequired is a valid number
-    const auraPointsRequired = parseInt(eventData.auraPointsRequired, 10);
+    // Convert to numbers and validate
+    const auraPointsRequired = Number(eventData.auraPointsRequired);
+    const maxVolunteers = Number(eventData.maxVolunteers);
 
     if (isNaN(auraPointsRequired) || auraPointsRequired < 0) {
       alert('Please enter a valid number for Aura Points Required.');
       return;
     }
 
-    // Prepare the event data
+    if (isNaN(maxVolunteers) || maxVolunteers <= 0) {
+      alert('Please enter a valid number for Max Volunteers.');
+      return;
+    }
+
     const newEventData = {
       ...eventData,
-      participants: [], // Initialize participants as an empty array
-      maxVolunteers,
-      auraPointsRequired, // Ensure this value is included in the event data
+      participants: [],
+      maxVolunteers: maxVolunteers,
+      auraPointsRequired: auraPointsRequired,
+      createdAt: new Date(),
+      hostId: auth.currentUser.uid,
     };
 
     try {
-      // Add event data to Firestore
-      await addDoc(collection(db, 'events'), newEventData);
-      console.log('Event hosted successfully');
+      const docRef = await addDoc(collection(db, 'events'), newEventData);
+      console.log('Event hosted successfully with ID:', docRef.id);
+      
+      // Update host's hostedEvents count
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      await updateDoc(userRef, {
+        hostedEvents: increment(1)
+      });
 
-      // Redirect to Browse Events page after successful submission
       navigate('/browse-events');
     } catch (error) {
       console.error('Error hosting event: ', error);
+      alert('Failed to create event. Please try again.');
     }
   };
 
