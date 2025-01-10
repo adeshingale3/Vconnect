@@ -3,6 +3,7 @@ import { db } from '../firebase'; // Import Firebase Firestore
 import { collection, getDocs } from 'firebase/firestore';
 import EventCard from './EventCard'; // Card component to display event
 
+
 const BrowseEvents = () => {
   const [events, setEvents] = useState([]);
   const [titleSearch, setTitleSearch] = useState(''); // State for title search

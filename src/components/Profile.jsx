@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore"; // Import updateDoc and other Firestore methods
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 const Profile = () => {
   const [userData, setUserData] = useState({
@@ -9,7 +9,7 @@ const Profile = () => {
     bio: "",
     participatedEvents: 0,
     hostedEvents: 0,
-    auraPoints: 0,
+    auraPoints: 10,
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -20,7 +20,6 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    // Fetch user data from Firestore when the component mounts
     const fetchUserData = async () => {
       try {
         const userDocRef = doc(db, "users", auth.currentUser.uid);
@@ -69,19 +68,18 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Profile</h2>
-        
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <h3 className="text-2xl font-bold">Profile</h3>
+      <div className="mt-4">
         <div className="mb-4">
-          <span className="text-lg font-semibold">Name: </span>
+          <span className="font-semibold">Name: </span>
           {editMode ? (
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="border border-gray-300 rounded p-2"
+              className="border rounded p-2"
             />
           ) : (
             <span>{userData.name}</span>
@@ -89,14 +87,14 @@ const Profile = () => {
         </div>
 
         <div className="mb-4">
-          <span className="text-lg font-semibold">Nickname: </span>
+          <span className="font-semibold">Nickname: </span>
           {editMode ? (
             <input
               type="text"
               name="nickname"
               value={formData.nickname}
               onChange={handleChange}
-              className="border border-gray-300 rounded p-2"
+              className="border rounded p-2"
             />
           ) : (
             <span>{userData.nickname}</span>
@@ -104,49 +102,53 @@ const Profile = () => {
         </div>
 
         <div className="mb-4">
-          <span className="text-lg font-semibold">Bio: </span>
+          <span className="font-semibold">Bio: </span>
           {editMode ? (
             <textarea
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              className="border border-gray-300 rounded p-2"
+              className="border rounded p-2"
             />
           ) : (
             <span>{userData.bio}</span>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="card text-center p-4 bg-blue-100 rounded">
-            <h3>Participated Events</h3>
-            <p>{userData.participatedEvents}</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <p>
+              <span className="font-semibold">Participated Events: </span>
+              {userData.participatedEvents}
+            </p>
+            <p>
+              <span className="font-semibold">Hosted Events: </span>
+              {userData.hostedEvents}
+            </p>
+            <p>
+              <span className="font-semibold">Aura Points: </span>
+              {userData.auraPoints}
+            </p>
           </div>
-          <div className="card text-center p-4 bg-green-100 rounded">
-            <h3>Hosted Events</h3>
-            <p>{userData.hostedEvents}</p>
-          </div>
-          <div className="card text-center p-4 bg-yellow-100 rounded">
-            <h3>Aura Points</h3>
-            <p>{userData.auraPoints}</p>
+
+          <div>
+            {editMode ? (
+              <button
+                onClick={handleSave}
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg"
+              >
+                Save
+              </button>
+            ) : (
+              <button
+                onClick={handleEditToggle}
+                className="bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+              >
+                Edit
+              </button>
+            )}
           </div>
         </div>
-
-        <button
-          onClick={handleEditToggle}
-          className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
-        >
-          {editMode ? "Cancel" : "Edit Profile"}
-        </button>
-
-        {editMode && (
-          <button
-            onClick={handleSave}
-            className="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-green-600 transition duration-200"
-          >
-            Save Changes
-          </button>
-        )}
       </div>
     </div>
   );
