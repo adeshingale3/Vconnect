@@ -1,88 +1,102 @@
-import React, { useEffect, useState } from "react";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase"; // Import Firebase config
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
+import { motion } from "framer-motion";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null); // Track the logged-in user
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); // Set the user state based on auth state
-    });
-
-    return () => {
-      unsubscribe(); // Clean up the listener on component unmount
-    };
-  }, []);
-
-  const handleRegisterClick = () => {
-    navigate("/register");
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
-
-  const handleLeaderBoardClick = () => {
-    navigate("/leaderboard"); // Redirect to leaderboard
-  };
-
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        console.log("User signed out");
-        navigate("/"); // Redirect to home after signing out
-      })
-      .catch((error) => console.log("Error signing out:", error));
-  };
-
-  const handleHostAnEvent = () => {
-    navigate("/host-an-event");
-  };
-
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-  const handleEventsClick = () => {
-    navigate("/browse-events")
-  }
+  const navItems = [
+    { name: 'Events', path: '/browse-events' },
+    { name: 'Leaderboard', path: '/leaderboard' },
+    { name: 'Host Event', path: '/host-an-event' },
+  ];
 
   return (
-    <div className="h-16 mt-4 fixed w-full flex items-center px-4">
-      {/* Logo */}
-      <div className="logo text-black font-bold text-xl">Volunteer Connect</div>
+    <nav className="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+          >
+            VConnect
+          </Link>
 
-      {/* Menu */}
-      <div className="menu ml-10 flex gap-6 flex-grow justify-center text-black">
-        {/* <a href="#" className="">Event</a> */}
-        <button onClick={handleEventsClick}>Events</button>
-        <button onClick={handleLeaderBoardClick}>Leaderboard</button>
-        <button onClick={handleHostAnEvent}>Host an Event</button>
-      </div>
-
-      {/* Login, Register, or Profile */}
-      <div className="flex gap-6">
-        {user ? (
-          <div className="flex items-center gap-4">
-            <span className="text-black font-bold"><button onClick={handleProfileClick}>{user.displayName || "Profile"}</button></span>
-            <button onClick={handleSignOut} className="text-black">
-              Sign Out
-            </button>
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <motion.div
+                key={item.name}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link
+                  to={item.path}
+                  className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50"
+                >
+                  {item.name}
+                </Link>
+              </motion.div>
+            ))}
           </div>
-        ) : (
-          <>
-            <button onClick={handleLoginClick} className="text-black">
-              Login
-            </button>
-            <button onClick={handleRegisterClick} className="text-black">
-              Register
-            </button>
-          </>
-        )}
+
+          {/* Auth Buttons */}
+          <div className="flex items-center space-x-4">
+            {auth.currentUser ? (
+              <div className="flex items-center space-x-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-lg font-medium"
+                >
+                  Profile
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSignOut}
+                  className="px-4 py-2 rounded-lg text-gray-600 hover:text-red-600 transition-colors text-lg font-medium"
+                >
+                  Sign Out
+                </motion.button>
+              </div>
+            ) : (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/login")}
+                  className="px-4 py-2 rounded-lg text-gray-600 hover:text-blue-600 transition-colors text-lg font-medium"
+                >
+                  Login
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/register")}
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-lg font-medium"
+                >
+                  Register
+                </motion.button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 };
 

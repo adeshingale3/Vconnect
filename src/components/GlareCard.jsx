@@ -2,35 +2,11 @@
 
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import PropTypes from 'prop-types';
+import { INTEREST_OPTIONS } from '../constants/interests';
 
 export const GlareCard = ({ user }) => {
-  let mouseX = useMotionValue(0);
-  let mouseY = useMotionValue(0);
-
-  function handleMouseMove({ currentTarget, clientX, clientY }) {
-    let { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
-
   return (
-    <div
-      className="group relative w-[400px] rounded-xl border border-white/10 bg-gray-900 px-8 py-12 shadow-2xl"
-      onMouseMove={handleMouseMove}
-      style={{ margin: '0 auto' }}
-    >
-      <motion.div
-        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
-        style={{
-          background: useMotionTemplate`
-            radial-gradient(
-              650px circle at ${mouseX}px ${mouseY}px,
-              rgba(14, 165, 233, 0.15),
-              transparent 80%
-            )
-          `,
-        }}
-      />
+    <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-8 shadow-lg">
       <div className="space-y-6">
         {/* Name Section */}
         <div className="text-center">
@@ -70,6 +46,26 @@ export const GlareCard = ({ user }) => {
             </span>
           </div>
         </div>
+
+        {/* Add this section after the Events Stats */}
+        {user?.interests?.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-gray-400 text-sm mb-2 text-center">Interests</h3>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {user.interests.map((interestId) => {
+                const interest = INTEREST_OPTIONS.find(opt => opt.id === interestId);
+                return interest ? (
+                  <span
+                    key={interestId}
+                    className="px-2 py-1 bg-white/5 rounded-full text-xs text-gray-300"
+                  >
+                    {interest.label}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -82,5 +78,6 @@ GlareCard.propTypes = {
     auraPoints: PropTypes.number,
     participatedEvents: PropTypes.number,
     hostedEvents: PropTypes.number,
+    interests: PropTypes.arrayOf(PropTypes.string)
   }),
 };
