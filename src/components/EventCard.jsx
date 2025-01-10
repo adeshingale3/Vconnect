@@ -106,7 +106,7 @@ const EventCard = ({ event }) => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className="bg-white p-4 rounded-lg shadow-md mt-16">
       <h3 className="text-2xl font-bold mb-2">{event.title || 'Untitled Event'}</h3>
       <p className="text-gray-700 mb-2">{event.description || 'No description provided.'}</p>
       <p className="text-gray-600">Location: {event.location || 'Not specified'}</p>

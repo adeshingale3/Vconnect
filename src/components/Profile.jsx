@@ -1,7 +1,10 @@
+// src/components/Profile.jsx
 import { useState, useEffect } from 'react';
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
+import html2canvas from 'html2canvas';
+import GenerateCard from './GenerateCard'; // Import GenerateCard component
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -127,8 +130,20 @@ const Profile = () => {
     }
   };
 
+  // Function to capture the profile card and trigger download
+  const handleDownload = () => {
+    const cardElement = document.getElementById("profile-card");
+
+    html2canvas(cardElement).then((canvas) => {
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL();
+      link.download = `${userData.name || 'profile'}.png`;
+      link.click();
+    });
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className="bg-white p-4 rounded-lg shadow-md mt-16">
       <h3 className="text-2xl font-bold">Profile</h3>
       <div className="mt-4">
         <div className="mb-4">
@@ -210,6 +225,20 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Card for download */}
+      <div id="profile-card" className="mt-6">
+        <GenerateCard
+          userData={userData} // Pass userData directly here
+        />
+      </div>
+
+      <button
+        onClick={handleDownload}
+        className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg mt-4"
+      >
+        Download Profile Card
+      </button>
     </div>
   );
 };

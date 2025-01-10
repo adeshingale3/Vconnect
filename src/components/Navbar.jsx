@@ -45,6 +45,9 @@ const Navbar = () => {
   const handleProfileClick = () => {
     navigate("/profile");
   };
+  const handleEventsClick = () => {
+    navigate("/browse-events")
+  }
 
   return (
     <div className="h-16 mt-4 fixed w-full flex items-center px-4">
@@ -53,7 +56,8 @@ const Navbar = () => {
 
       {/* Menu */}
       <div className="menu ml-10 flex gap-6 flex-grow justify-center text-black">
-        <a href="#" className="">Event</a>
+        {/* <a href="#" className="">Event</a> */}
+        <button onClick={handleEventsClick}>Events</button>
         <button onClick={handleLeaderBoardClick}>Leaderboard</button>
         <button onClick={handleHostAnEvent}>Host an Event</button>
       </div>

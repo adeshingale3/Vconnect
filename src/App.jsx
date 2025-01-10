@@ -24,7 +24,7 @@ const App = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/leaderboard" element={<Leaderboard/>}/>
-
+          <Route path="/events/:eventId/chat" element={<ChatPage />} />
         </Routes>
       </div>
     </Router>
