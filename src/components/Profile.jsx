@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
+import { GlareCard } from './GlareCard';
 import html2canvas from 'html2canvas';
-import GenerateCard from './GenerateCard'; // Import GenerateCard component
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Profile = () => {
   });
 
   const [editMode, setEditMode] = useState(false);
+  const [showVCard, setShowVCard] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     nickname: "",
@@ -35,12 +36,9 @@ const Profile = () => {
     const fetchUserData = async () => {
       try {
         const userDocRef = doc(db, "users", auth.currentUser.uid);
-
-        // Fetch user data from Firestore
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          console.log("Fetched data:", data); // Debugging fetched data
           setUserData({
             ...data,
             auraPoints: Number(data.auraPoints ?? 10),
@@ -52,26 +50,8 @@ const Profile = () => {
             nickname: data.nickname || "",
             bio: data.bio || "",
           });
-        } else {
-          // Create default user data if not exists
-          const defaultData = {
-            name: "",
-            nickname: "",
-            bio: "",
-            participatedEvents: 0,
-            hostedEvents: 0,
-            auraPoints: 10,
-          };
-          await setDoc(userDocRef, defaultData);
-          setUserData(defaultData);
-          setFormData({
-            name: "",
-            nickname: "",
-            bio: "",
-          });
         }
 
-        // Realtime updates
         unsubscribe = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             const data = doc.data();
@@ -86,7 +66,6 @@ const Profile = () => {
 
       } catch (error) {
         console.error("Error fetching user data:", error);
-        alert("Error loading profile data. Please try again.");
       }
     };
 
@@ -109,10 +88,7 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    if (!auth.currentUser) {
-      alert("Please log in to update your profile.");
-      return;
-    }
+    if (!auth.currentUser) return;
 
     try {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
@@ -123,28 +99,79 @@ const Profile = () => {
       });
 
       setEditMode(false);
-      console.log("User data updated successfully");
     } catch (error) {
       console.error("Error updating user data:", error);
-      alert("Failed to update profile. Please try again.");
     }
   };
 
-  // Function to capture the profile card and trigger download
-  const handleDownload = () => {
-    const cardElement = document.getElementById("profile-card");
+  const handleDownloadVCard = async () => {
+    const cardElement = document.getElementById("vcard");
+    if (cardElement) {
+      try {
+        // Create a temporary container with black background
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.background = '#000';
+        tempContainer.style.padding = '0';
+        
+        // Clone the card and remove any margins
+        const cardClone = cardElement.cloneNode(true);
+        cardClone.style.margin = '0';
+        cardClone.style.maxWidth = 'none';
+        tempContainer.appendChild(cardClone);
+        document.body.appendChild(tempContainer);
 
-    html2canvas(cardElement).then((canvas) => {
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL();
-      link.download = `${userData.name || 'profile'}.png`;
-      link.click();
-    });
+        // Capture the card
+        const canvas = await html2canvas(cardClone, {
+          backgroundColor: null,
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true,
+          allowTaint: true,
+          removeContainer: true,
+        });
+
+        // Create download link
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL('image/png');
+        link.download = `${userData.name || 'volunteer'}_vcard.png`;
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(tempContainer);
+      } catch (error) {
+        console.error('Error generating card:', error);
+      }
+    }
   };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md mt-16">
-      <h3 className="text-2xl font-bold">Profile</h3>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-2xl font-bold">Profile</h3>
+        <button
+          onClick={() => setShowVCard(!showVCard)}
+          className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition duration-200"
+        >
+          {showVCard ? 'Hide VCard' : 'Show VCard'}
+        </button>
+      </div>
+
+      {showVCard && (
+        <div className="mb-8">
+          <div id="vcard" className="mb-4">
+            <GlareCard user={userData} />
+          </div>
+          <button
+            onClick={handleDownloadVCard}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
+          >
+            Download VCard
+          </button>
+        </div>
+      )}
+
       <div className="mt-4">
         <div className="mb-4">
           <span className="font-semibold">Name: </span>
@@ -183,7 +210,7 @@ const Profile = () => {
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              className="border rounded p-2"
+              className="border rounded p-2 w-full"
             />
           ) : (
             <span>{userData.bio || "No bio provided"}</span>
@@ -225,20 +252,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
-      {/* Profile Card for download */}
-      <div id="profile-card" className="mt-6">
-        <GenerateCard
-          userData={userData} // Pass userData directly here
-        />
-      </div>
-
-      <button
-        onClick={handleDownload}
-        className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg mt-4"
-      >
-        Download Profile Card
-      </button>
     </div>
   );
 };
