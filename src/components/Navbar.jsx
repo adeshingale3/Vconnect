@@ -33,6 +33,12 @@ const Navbar = () => {
       })
       .catch((error) => console.log("Error signing out:", error));
   };
+  const handleHostAnEvent = ()=>{
+    navigate("/host-an-event")
+  }
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
 
   return (
     <div className="h-16 mt-4 fixed w-full flex items-center px-4">
@@ -43,14 +49,15 @@ const Navbar = () => {
       <div className="menu ml-10 flex gap-6 flex-grow justify-center text-black">
         <a href="#" className="">Event</a>
         <a href="#" className="">Leaderboard</a>
-        <a href="#" className="">Host an Event</a>
+        {/* <a href="#" className="">Host an Event</a> */}
+        <button onClick={handleHostAnEvent}>Host an Event</button>
       </div>
 
       {/* Login, Register, or Profile */}
       <div className="flex gap-6">
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="text-black font-bold">{user.displayName || "Profile"}</span>
+            <span className="text-black font-bold"><button onClick={handleProfileClick}>{user.displayName || "Profile"}</button></span>
             <button onClick={handleSignOut} className="text-black">
               Sign Out
             </button>

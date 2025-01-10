@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { auth } from "../firebase";  // Ensure you are importing auth from firebase.js
+import { auth, db } from "../firebase"; // Ensure correct imports
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore"; // Import Firestore functions
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -10,6 +11,8 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    nickname: "",
+    bio: "",
   });
 
   const handleChange = (e) => {
@@ -20,7 +23,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
+    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       console.log("Passwords do not match");
       return;
@@ -28,10 +31,26 @@ const Register = () => {
 
     try {
       // Create user with email and password
-      await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      console.log("User registered successfully");
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
-      // Redirect to login page after successful registration
+      const user = userCredential.user;
+
+      // Save user data to Firestore with uid as document ID
+      await setDoc(doc(db, "users", user.uid), {
+        name: formData.name,
+        email: formData.email,
+        nickname: formData.nickname || "",
+        bio: formData.bio || "",
+        participatedEvents: 0, // Initialize the counts
+        hostedEvents: 0,
+        auraPoints: 0,
+      });
+
+      console.log("User registered successfully and data saved to Firestore");
       navigate("/login");
     } catch (error) {
       console.error("Error during registration:", error.message);
@@ -43,7 +62,6 @@ const Register = () => {
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-lg">
         <h1 className="text-2xl font-bold text-center mb-6">Registration Page</h1>
         <form onSubmit={handleSubmit}>
-          {/* Name */}
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Name</label>
             <input
@@ -55,8 +73,27 @@ const Register = () => {
               placeholder="Enter your name"
             />
           </div>
-
-          {/* Email */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Nickname</label>
+            <input
+              type="text"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="Enter your nickname"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Bio</label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="Enter your bio"
+            ></textarea>
+          </div>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Email</label>
             <input
@@ -68,8 +105,6 @@ const Register = () => {
               placeholder="Enter your email"
             />
           </div>
-
-          {/* Password */}
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Password</label>
             <input
@@ -81,8 +116,6 @@ const Register = () => {
               placeholder="Enter your password"
             />
           </div>
-
-          {/* Confirm Password */}
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Confirm Password</label>
             <input
@@ -94,8 +127,6 @@ const Register = () => {
               placeholder="Confirm your password"
             />
           </div>
-
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
