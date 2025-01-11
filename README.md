@@ -6,6 +6,8 @@ Volunteering opportunities often suffer from poor engagement and high dropout ra
 ## 💡 Solution
 VConnect is a gamified web platform that connects volunteers with organizers by offering event management tools, a points-based reward system (AURA), and social features to make volunteering engaging and rewarding, while generating revenue through premium services and sponsored content.
 
+** Live on - https://vconnect-ecru.vercel.app/ **
+
 ## ⭐ Key Features
 
 - **User Management**
