@@ -120,36 +120,46 @@ const Profile = () => {
     if (!cardElement) return;
 
     try {
-      // Create a temporary container with white background
+      // Create a temporary container with dark background
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'fixed';
       tempContainer.style.top = '0';
       tempContainer.style.left = '-9999px';
-      tempContainer.style.background = 'white';
-      tempContainer.style.width = '300px'; // Fixed width for the card
-      tempContainer.style.padding = '20px';
+      tempContainer.style.background = 'linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55))';
+      tempContainer.style.width = '400px'; // Increased width for better quality
+      tempContainer.style.padding = '32px';
+      tempContainer.style.borderRadius = '12px';
       
-      // Clone the card
+      // Clone the card and maintain styles
       const cardClone = cardElement.cloneNode(true);
       cardClone.style.margin = '0';
       cardClone.style.width = '100%';
+      cardClone.style.background = 'transparent';
       tempContainer.appendChild(cardClone);
       document.body.appendChild(tempContainer);
 
-      // Capture the card
-      const canvas = await html2canvas(cardClone, {
-        backgroundColor: '#ffffff',
+      // Capture the card with better quality settings
+      const canvas = await html2canvas(tempContainer, {
+        backgroundColor: null,
         scale: 2, // Higher quality
         useCORS: true,
         allowTaint: true,
-        width: 300,
-        height: cardClone.offsetHeight,
+        width: 400,
+        height: tempContainer.offsetHeight,
+        onclone: (clonedDoc) => {
+          // Ensure all styles are properly applied in the cloned version
+          const clonedCard = clonedDoc.getElementById("vcard");
+          if (clonedCard) {
+            clonedCard.style.transform = 'none';
+            clonedCard.style.boxShadow = 'none';
+          }
+        }
       });
 
-      // Create and trigger download
+      // Create and trigger download with better quality
       const link = document.createElement("a");
       link.download = `${userData.name || 'volunteer'}_vcard.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0); // Maximum quality
       link.click();
 
       // Cleanup
@@ -318,15 +328,27 @@ const Profile = () => {
         {/* VCard Section */}
         {showVCard && (
           <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <div id="vcard" className="w-full max-w-sm mx-auto">
+            <div id="vcard" className="w-full max-w-sm mx-auto transform transition-transform hover:scale-105">
               <GlareCard user={userData} />
             </div>
-            <div className="mt-4 flex justify-center">
+            <div className="mt-6 flex justify-center">
               <button
                 onClick={handleDownloadVCard}
-                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
               >
-                Download VCard
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className="h-5 w-5" 
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+                <span>Download VCard</span>
               </button>
             </div>
           </div>
