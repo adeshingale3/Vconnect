@@ -10,13 +10,14 @@ import { getStorage } from "firebase/storage";
 // Your web app's Firebase configuration
 // These API keys are just for testing purpose
 const firebaseConfig = {
-  apiKey: "AIzaSyCdRU8N4-v2rcbKrnEFrESPWLRy91OMAU0",
-  authDomain: "vconnect-8de17.firebaseapp.com",
-  projectId: "vconnect-8de17",
-  storageBucket: "vconnect-8de17.firebasestorage.app",
-  messagingSenderId: "505939014385",
-  appId: "1:505939014385:web:36e5b5118622857d7d6f50"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
